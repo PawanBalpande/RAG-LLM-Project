@@ -13,4 +13,4 @@ fastapi
 uvicorn
 python-multipart
 sqlalchemy
-psycopg[binary]
+
