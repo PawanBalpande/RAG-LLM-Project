@@ -1,58 +1,58 @@
-# RAG Project (Backend + React UI)
+# RAG Project (FastAPI + React + Docker)
 
-This project now has:
-- FastAPI backend for RAG query (`/api/chat`)
-- React frontend UI to ask questions from your PDF vectorstore
+## Deploy (Render + Vercel)
 
-## Project Structure
+### Backend on Render (Docker)
+1. Push this repo to GitHub.
+2. In Render, create **New Web Service** and connect the repo.
+3. Render will auto-detect `render.yaml`.
+4. Add env var:
+   - `GROQ_API_KEY`
+5. Deploy and copy backend URL, for example:
+   - `https://rag-llm-backend.onrender.com`
 
-- `backend/app.py`: FastAPI app
-- `backend/rag_service.py`: retrieval + LLM answer flow
-- `frontend/`: React + Vite UI
-- `data/vectorstore/`: existing ChromaDB persistence
+### Frontend on Vercel
+1. Import the repo in Vercel.
+2. Set **Root Directory** to `frontend`.
+3. Add env var in Vercel project:
+   - `VITE_API_BASE=https://your-render-backend-url/api`
+4. Deploy.
 
-## 1) Setup Python Environment
+## Prerequisites
+- Docker + Docker Compose
+- Groq API key in `.env`
 
-```bash
-cd /Users/pawanbalpande/Desktop/RAG
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python -m pip install fastapi uvicorn
-```
-
-## 2) Add API Key
-
-In `.env`:
-
+`.env`:
 ```env
 GROQ_API_KEY=your_groq_api_key
 ```
 
-## 3) Run Backend
-
+## Run With Docker Compose (Recommended)
 ```bash
 cd /Users/pawanbalpande/Desktop/RAG
-source .venv/bin/activate
-uvicorn backend.app:app --reload --host 127.0.0.1 --port 8000
+docker compose up --build
 ```
 
-Health check:
-- `http://127.0.0.1:8000/health`
+Open:
+- Frontend: `http://127.0.0.1:5173`
+- Backend docs: `http://127.0.0.1:8000/docs`
 
-## 4) Run Frontend
+## Run Backend Container Only
+```bash
+cd /Users/pawanbalpande/Desktop/RAG
+docker build -t rag-backend .
+docker run --rm -p 8000:8000 --env-file .env -v "$(pwd)/data:/app/data" rag-backend
+```
 
-In another terminal:
-
+## Local Frontend (without Docker)
 ```bash
 cd /Users/pawanbalpande/Desktop/RAG/frontend
+cp .env.example .env
 npm install
 npm run dev
 ```
 
-Open:
-- `http://127.0.0.1:5173`
-
-## Notes
-
-- The UI posts to `http://127.0.0.1:8000/api/chat`.
-- If retrieval seems stale, rebuild/reinsert embeddings into the same Chroma collection (`pdf_documents`).
+If backend is remote, set `VITE_API_BASE` in `frontend/.env`:
+```env
+VITE_API_BASE=https://your-backend-url/api
+```
