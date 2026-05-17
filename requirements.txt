@@ -11,3 +11,4 @@ python-dotenv
 typesense
 fastapi
 uvicorn
+python-multipart
