@@ -2,7 +2,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from backend.rag_service import RagService
+from rag_service import RagService
 
 
 class ChatRequest(BaseModel):
@@ -42,7 +42,8 @@ def health() -> dict[str, str]:
 @app.post("/api/chat")
 def chat(payload: ChatRequest) -> dict:
     if rag_service is None:
-        raise HTTPException(status_code=500, detail="RAG service not initialized")
+        raise HTTPException(
+            status_code=500, detail="RAG service not initialized")
     try:
         return rag_service.ask(query=payload.query, top_k=payload.top_k)
     except Exception as exc:
@@ -52,7 +53,8 @@ def chat(payload: ChatRequest) -> dict:
 @app.post("/api/reindex")
 def reindex(payload: ReindexRequest) -> dict:
     if rag_service is None:
-        raise HTTPException(status_code=500, detail="RAG service not initialized")
+        raise HTTPException(
+            status_code=500, detail="RAG service not initialized")
     try:
         return rag_service.reindex_pdfs(
             chunk_size=payload.chunk_size,
@@ -65,7 +67,8 @@ def reindex(payload: ReindexRequest) -> dict:
 @app.post("/api/reset")
 def reset_vectorstore() -> dict:
     if rag_service is None:
-        raise HTTPException(status_code=500, detail="RAG service not initialized")
+        raise HTTPException(
+            status_code=500, detail="RAG service not initialized")
     try:
         return rag_service.reset_collection()
     except Exception as exc:
@@ -75,12 +78,15 @@ def reset_vectorstore() -> dict:
 @app.post("/api/upload-pdf")
 async def upload_pdf(file: UploadFile = File(...)) -> dict[str, str]:
     if file.content_type not in {"application/pdf", "application/octet-stream"}:
-        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+        raise HTTPException(
+            status_code=400, detail="Only PDF files are allowed")
 
     content = await file.read()
     if rag_service is None:
-        raise HTTPException(status_code=500, detail="RAG service not initialized")
-    result = rag_service.index_uploaded_pdf(filename=file.filename, content=content)
+        raise HTTPException(
+            status_code=500, detail="RAG service not initialized")
+    result = rag_service.index_uploaded_pdf(
+        filename=file.filename, content=content)
     return {
         "status": "indexed_in_memory",
         "filename": file.filename,
