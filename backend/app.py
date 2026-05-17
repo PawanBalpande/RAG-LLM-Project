@@ -28,10 +28,11 @@ app.add_middleware(
 rag_service: RagService | None = None
 
 
-@app.on_event("startup")
-def startup() -> None:
+def get_rag_service() -> RagService:
     global rag_service
-    rag_service = RagService()
+    if rag_service is None:
+        rag_service = RagService()
+    return rag_service
 
 
 @app.get("/health")
@@ -41,22 +42,18 @@ def health() -> dict[str, str]:
 
 @app.post("/api/chat")
 def chat(payload: ChatRequest) -> dict:
-    if rag_service is None:
-        raise HTTPException(
-            status_code=500, detail="RAG service not initialized")
+    service = get_rag_service()
     try:
-        return rag_service.ask(query=payload.query, top_k=payload.top_k)
+        return service.ask(query=payload.query, top_k=payload.top_k)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.post("/api/reindex")
 def reindex(payload: ReindexRequest) -> dict:
-    if rag_service is None:
-        raise HTTPException(
-            status_code=500, detail="RAG service not initialized")
+    service = get_rag_service()
     try:
-        return rag_service.reindex_pdfs(
+        return service.reindex_pdfs(
             chunk_size=payload.chunk_size,
             chunk_overlap=payload.chunk_overlap,
         )
@@ -66,11 +63,9 @@ def reindex(payload: ReindexRequest) -> dict:
 
 @app.post("/api/reset")
 def reset_vectorstore() -> dict:
-    if rag_service is None:
-        raise HTTPException(
-            status_code=500, detail="RAG service not initialized")
+    service = get_rag_service()
     try:
-        return rag_service.reset_collection()
+        return service.reset_collection()
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -82,10 +77,8 @@ async def upload_pdf(file: UploadFile = File(...)) -> dict[str, str]:
             status_code=400, detail="Only PDF files are allowed")
 
     content = await file.read()
-    if rag_service is None:
-        raise HTTPException(
-            status_code=500, detail="RAG service not initialized")
-    result = rag_service.index_uploaded_pdf(
+    service = get_rag_service()
+    result = service.index_uploaded_pdf(
         filename=file.filename, content=content)
     return {
         "status": "indexed_in_memory",
