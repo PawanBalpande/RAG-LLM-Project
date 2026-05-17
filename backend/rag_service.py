@@ -27,7 +27,8 @@ class RagService:
         self.persist_directory = str((root / persist_directory).resolve())
         self.collection_name = collection_name
 
-        self.embedder = SentenceTransformer(embedding_model)
+        self.embedding_model = embedding_model
+        self.embedder: SentenceTransformer | None = None
         self.client = chromadb.PersistentClient(path=self.persist_directory)
         self.collection = self.client.get_or_create_collection(name=self.collection_name)
 
@@ -42,8 +43,14 @@ class RagService:
             max_tokens=1024,
         )
 
+    def _get_embedder(self) -> SentenceTransformer:
+        if self.embedder is None:
+            self.embedder = SentenceTransformer(self.embedding_model)
+        return self.embedder
+
     def ask(self, query: str, top_k: int = 4) -> dict[str, Any]:
-        query_vec = self.embedder.encode([query])[0].tolist()
+        embedder = self._get_embedder()
+        query_vec = embedder.encode([query])[0].tolist()
 
         result = self.collection.query(
             query_embeddings=[query_vec],
@@ -120,7 +127,8 @@ Answer:
         texts = [doc.page_content for doc in chunks]
         metadatas = [dict(doc.metadata) for doc in chunks]
         ids = [f"upload_{uuid.uuid4().hex}" for _ in chunks]
-        embeddings = self.embedder.encode(texts).tolist()
+        embedder = self._get_embedder()
+        embeddings = embedder.encode(texts).tolist()
 
         self.collection.add(
             ids=ids,
@@ -165,7 +173,8 @@ Answer:
         ids = [f"chunk_{i}" for i in range(len(chunks))]
         texts = [doc.page_content for doc in chunks]
         metadatas = [dict(doc.metadata) for doc in chunks]
-        embeddings = self.embedder.encode(texts).tolist()
+        embedder = self._get_embedder()
+        embeddings = embedder.encode(texts).tolist()
 
         # Reset collection so count reflects latest documents.
         self.client.delete_collection(self.collection_name)
