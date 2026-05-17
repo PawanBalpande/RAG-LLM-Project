@@ -1,6 +1,3 @@
-def main():
-    print("Hello from rag!")
+"""Vercel entrypoint for FastAPI."""
 
-
-if __name__ == "__main__":
-    main()
+from backend.app import app
