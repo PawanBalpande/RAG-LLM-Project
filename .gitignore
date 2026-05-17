@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Secrets
+.env
+
+# Frontend deps/build
+frontend/node_modules/
+frontend/dist/
+
+# Local vector db/cache
+data/vectorstore/
+
+# Jupyter
+.ipynb_checkpoints/
