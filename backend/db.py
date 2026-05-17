@@ -13,6 +13,10 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./rag.db")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
+# Force SQLAlchemy to use psycopg v3 driver (installed via psycopg[binary])
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=connect_args)
@@ -30,4 +34,3 @@ def get_session() -> Session:
         raise
     finally:
         session.close()
-
