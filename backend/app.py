@@ -2,7 +2,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from rag_service import RagService
+from typing import Any
 
 
 class ChatRequest(BaseModel):
@@ -25,12 +25,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-rag_service: RagService | None = None
+rag_service: Any = None
 
 
-def get_rag_service() -> RagService:
+def get_rag_service():
     global rag_service
     if rag_service is None:
+        from rag_service import RagService
         rag_service = RagService()
     return rag_service
 
