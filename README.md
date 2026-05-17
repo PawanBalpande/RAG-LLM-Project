@@ -8,6 +8,7 @@
 3. Render will auto-detect `render.yaml`.
 4. Add env var:
    - `GROQ_API_KEY`
+   - `DATABASE_URL` (Render PostgreSQL connection string)
 5. Deploy and copy backend URL, for example:
    - `https://rag-llm-backend.onrender.com`
 
@@ -21,10 +22,12 @@
 ## Prerequisites
 - Docker + Docker Compose
 - Groq API key in `.env`
+- PostgreSQL database URL (for persistent metadata/chat logs)
 
 `.env`:
 ```env
 GROQ_API_KEY=your_groq_api_key
+DATABASE_URL=postgresql://username:password@host:5432/dbname
 ```
 
 ## Run With Docker Compose (Recommended)
